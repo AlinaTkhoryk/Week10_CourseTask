@@ -10,10 +10,37 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.annotations.Test;
 import pages.Elmir;
 
+
+import groovy.json.JsonException;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import  io.restassured.response.*;
+
+import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
+import io.restassured.specification.ResponseSpecification;
+
+import java.net.URI;
+
 public class ElmirTest extends BaseTest {
 
     @Test
     public void testCaseOne() {
+         String goodsResponse = RestAssured.given()
+                //.contentType(ContentType.JSON)
+                .get("/api/goods")
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .assertThat()
+                .header("Content-Type", ("application/json"))
+
+                .extract()
+                .response()
+                .asString();
+
+
+
         driver.get("https://elmir.ua/");
         Elmir elmirPage = PageFactory.initElements(driver, Elmir.class);
         //System.out.println("Hello World! Start");
