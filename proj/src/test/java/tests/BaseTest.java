@@ -1,8 +1,13 @@
 package tests;
 
+import Datas.ItemData;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -17,6 +22,8 @@ import org.testng.annotations.BeforeTest;
 import pages.Elmir;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BaseTest {
     protected WebDriver driver;
@@ -28,15 +35,7 @@ public class BaseTest {
     @BeforeTest
     public void setDriver(){
 
-        //System.out.println("BeforeTest");
         WebDriverManager.chromedriver().setup();
-        //driver = WebDriverManager.chromedriver().create();
-//        WebDriverManager.chromedriver()
-//                .linux()
-//                .browserVersion("95.0.4638.69")
-//                .setup();
-//        options = new ChromeOptions();
-//        options.addArguments("start-maximized");
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--remote-allow-origins=*");
         driver = new ChromeDriver(options);
@@ -51,26 +50,26 @@ public class BaseTest {
             driver.quit();
     }
 
+    protected List<ItemData> getGoods() throws ParseException {
+        String json = "{\"goods\":[\n    {\n      \"name\":\"Видеокарта Inno3D NVIDIA CMP 90-HX MINING CARD (ACMP-90HX-3FS, 288-9N612-101KT)\",\n      \"price\":\"79 999 грн\",\n      \"availability\":\"Под заказ\",\n      \"code\": \"Код:63918\"\n    },\n    {\n      \"name\":\"МФУ Kyocera Ecosys M2040dn (1102S33NL0)\",\n      \"price\":\"14 060 грн\",\n      \"availability\":\"Доступен\",\n      \"code\": \"Код: 1122990\"\n    },\n    {\n      \"name\":\"Bluetooth-адаптер Baseus Bluetooth Qiyin AUX Black (WXQY-01)\",\n      \"price\":\"277 грн\",\n      \"availability\":\"В наличии\",\n      \"code\": \"Код: 1205257\"\n    },\n    {\n      \"name\":\"Штатив VELBON EX-323 Mini\",\n      \"price\":\"1 004 грн\",\n      \"availability\":\"Доступен\",\n      \"code\": \"Код: 24567\"\n    }\n  ]}";
 
-    protected void click(By locator) {
-        wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
-        driver.findElement(locator).click();
+        JSONParser parser = new JSONParser();
+        Object jsonObj = parser.parse(json);
+        JSONObject jsonObject = (JSONObject) jsonObj;
+        JSONArray goodsJsonArray = (JSONArray) jsonObject.get("goods");
+
+        List<ItemData> itemDatas = new ArrayList<ItemData>();
+
+        for (int i = 0; i < goodsJsonArray.size(); i++) {
+            JSONObject jsonItemData = (JSONObject) goodsJsonArray.get(i);
+            ItemData itemData = new ItemData();
+            itemData.availability = jsonItemData.get("availability").toString();
+            itemData.name = jsonItemData.get("name").toString();
+            itemData.code = jsonItemData.get("code").toString();
+            itemData.price = jsonItemData.get("price").toString();
+
+            itemDatas.add(itemData);
+        }
+        return itemDatas;
     }
-
-    protected void mouseClick(By locator) {
-        wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
-        WebElement element = driver.findElement(locator);
-        action.moveToElement(element).click().perform();
-    }
-
-    protected void switchToWindow(int index) {
-        index--;
-        String windowKey = (String) driver.getWindowHandles().toArray()[index];
-        driver.switchTo().window(windowKey);
-        LOG.info("Switch to window");
-        LOG.debug("Switch to window by key: "+windowKey);
-    }
-
-
-
 }
